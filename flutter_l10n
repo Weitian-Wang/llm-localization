@@ -1,0 +1,1 @@
+python3 flutter_localize.py -i ./test_inputs/app_en.arb -l ja -k $OPENAI_API_KEY
