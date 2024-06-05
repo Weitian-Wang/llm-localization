@@ -1,1 +1,5 @@
-python3 flutter_localize.py -i ./test_inputs/app_en.arb -l ja -k $OPENAI_API_KEY
+if [ -f .env ]; then
+    source .env
+fi
+
+python3 flutter_localize.py -i ./test_inputs/app_en.arb -l ja es -k $OPENAI_API_KEY
