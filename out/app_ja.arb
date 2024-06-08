@@ -1,7 +1,0 @@
-{
-  "helloWorld": "こんにちは、ヘブン！",
-  "hello": "こんにちは、{userName}",
-  "nWombats": "{count, plural, =0{ワンバットはいません} =1{1匹のワンバット} other{{count}匹のワンバット}}",
-  "pronoun": "{gender, select, male{彼} female{彼女} other{彼ら}}",
-  "numberOfDataPoints": "データポイントの数：{value}"
-}

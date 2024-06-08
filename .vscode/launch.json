@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "args": ["-i", "./test_inputs/app_en.arb", "-l", "ja"]
+            "args": ["-i", "./test_inputs/app_en.arb", "-l", "zh", "-k", "$OPENAI_API_KEY"]
         }
     ]
 }
