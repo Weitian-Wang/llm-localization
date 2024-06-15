@@ -163,3 +163,7 @@ cython_debug/
 
 # output directory
 out/
+app_en.arb
+.vscode/
+screenshots/
+.DS_Store

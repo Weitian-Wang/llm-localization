@@ -2,4 +2,4 @@ if [ -f .env ]; then
     source .env
 fi
 
-python3 flutter_localize.py -i ./test_inputs/app_en.arb -l ja es -k $OPENAI_API_KEY
+python3 flutter_localize.py -i app_en.arb -l zh -k $OPENAI_API_KEY
