@@ -2,7 +2,8 @@ import collections
 import os
 import json
 import argparse
-import re
+import base64
+from tqdm import tqdm
 from typing import *
 from openai import OpenAI
 from constants import LOCALE_TO_LANG
@@ -25,8 +26,9 @@ if __name__ == "__main__":
 
     file_path = args.file
     languages = ["".join(locale) for locale in args.languages]
-    chunk = args.chunk if args.chunk else 5
     api_key = args.key
+    image_dir = args.screenshot
+    chunk = args.chunk if args.chunk else 5
 
     directory = "out"
     if not os.path.exists(directory):
@@ -47,11 +49,13 @@ if __name__ == "__main__":
     for lang in languages:
         if lang not in LOCALE_TO_LANG:
             raise KeyError()
+        print(f"Localizing input into {LOCALE_TO_LANG[lang]}")
         
         out_file_path = f'{directory}/app_{lang}.arb'
         with open(out_file_path, 'w') as file:
             file.write("{\n")
-            for idx, message in enumerate(messages):
+            for idx in tqdm(range(len(messages))):
+                message = messages[idx]
                 content = [
                     {
                         "type": "text", 
@@ -59,19 +63,37 @@ if __name__ == "__main__":
                                 {"Its usage context is: " + messageMeta[message]["description"] if message in messageMeta and messageMeta[message] and messageMeta[message]["description"] else ""}'
                     }
                 ]
+                for extension in [".png", ".jpeg", ".jpg"]:
+                    detail = "low"
+                    image_path = os.path.join(image_dir if image_dir else "", message+extension)
+                    if os.path.exists(image_path):
+                        with open(image_path, "rb") as image_file:
+                            content.append(
+                                {
+                                    "type": "image_url",
+                                    "image_url": 
+                                    {
+                                        "url": f"data:image/jpeg;base64,{base64.b64encode(image_file.read()).decode('utf-8')}",
+                                        "detail": "low"
+                                    }
+                                }
+                            )
                 # append image input if image flag is true
-                
                 completion = client.chat.completions.create(
-                    model="gpt-4o",
+                    # cheap and fast gpt-4 mode
+                    # model="gpt-4o",
+                    # gpt with image support
+                    model="gpt-4-vision-preview",
                     messages=[
                         {"role": f"system", "content": f"Translate the following messages from an Application Resource Bundle (ARB) file into {LOCALE_TO_LANG[lang]}.\n\
-                                                        Context: These JSON key-value pairs are from a Flutter application's localization template.\n\
+                                                        These JSON key-value pairs are from a Flutter application's localization template.\n\
                                                         Instructions:\n\
-                                                        1. Only translate the message value.\n\
+                                                        1. Output each JSON key-value pair without leading or tailing brackets, commas, spaces, or line change.\n\
+                                                        2. Like the inputs, the outcome key and value should be enclosed in double quotations.\n\
                                                         2. Use the provided context for more accurate translations.\n\
-                                                        3. Output each JSON key-value pair without leading or tailing brackets, commas, spaces, or line change.\n\
                                                         4. If the message contains markdown formatting syntax, keep those syntax.\n\
-                                                        5. Use the screenshot (if provided, else ignore this instruction) of the widgets as extra context."
+                                                        5. If screenshot of the widget is provided, use the it for extra context.\n\
+                                                        6. The message is from a stress tracking app, make sure the message sounds caring and cute"
                         },
                         {
                             "role": "user", 
