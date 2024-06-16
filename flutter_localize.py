@@ -49,7 +49,7 @@ if __name__ == "__main__":
     for lang in languages:
         if lang not in LOCALE_TO_LANG:
             raise KeyError()
-        print(f"Localizing input into {LOCALE_TO_LANG[lang]}")
+        print(f"Localizing {LOCALE_TO_LANG[lang]}")
         
         out_file_path = f'{directory}/app_{lang}.arb'
         with open(out_file_path, 'w') as file:
