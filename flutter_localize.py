@@ -4,13 +4,14 @@ import json
 import argparse
 import base64
 from tqdm import tqdm
+from dotenv import load_dotenv
 from typing import *
 from openai import OpenAI
 from constants import LOCALE_TO_LANG
 
 def read_input_file(file_path: str) -> str:
     file_content = ""
-    with open(file_path, 'r') as file:
+    with open(file_path, 'rb') as file:
         file_content = file.read()
     return file_content
 
@@ -18,7 +19,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog="flutter_l10n" , description="Localize a flutter file to target languages.")
     parser.add_argument('-i', '--file', type=str, help="Path to the input flutter template file.")
     parser.add_argument('-l', '--languages', nargs='+', type=list, help="The list of target languages.")
-    parser.add_argument('-k', '--key', type=str, required=True, help="Your OpenAI API key.")
     parser.add_argument('-s', '--screenshot', type=str, help="The folder that contains all of your screenshots.")
     parser.add_argument('-c', '--chunk', type=int, required=False, help="Number of messages per API request.")
 
@@ -26,7 +26,6 @@ if __name__ == "__main__":
 
     file_path = args.file
     languages = ["".join(locale) for locale in args.languages]
-    api_key = args.key
     image_dir = args.screenshot
     chunk = args.chunk if args.chunk else 5
 
@@ -44,6 +43,7 @@ if __name__ == "__main__":
             messages.append(k)
             messageMeta[k] = jsonData['@'+k] if '@'+k in jsonData else None
     
+    load_dotenv()
     client = OpenAI()
 
     for lang in languages:
@@ -59,10 +59,10 @@ if __name__ == "__main__":
                 content = [
                     {
                         "type": "text", 
-                        "text": f'"{message}": "{jsonData[message]}"\n\
-                                {"Its usage context is: " + messageMeta[message]["description"] if message in messageMeta and messageMeta[message] and messageMeta[message]["description"] else ""}'
+                        "text": f"{message}:{jsonData[message]}"
                     }
                 ]
+                # content = f"{message}:{jsonData[message]}"
                 for extension in [".png", ".jpeg", ".jpg"]:
                     detail = "low"
                     image_path = os.path.join(image_dir if image_dir else "", message+extension)
@@ -83,23 +83,30 @@ if __name__ == "__main__":
                     # cheap and fast gpt-4 mode
                     # model="gpt-4o",
                     # gpt with image support
-                    model="gpt-4-vision-preview",
+                    model="gpt-4o-mini",
+                    # response_format={ "type": "json_object" },
                     messages=[
-                        {"role": f"system", "content": f"Translate the following messages from an Application Resource Bundle (ARB) file into {LOCALE_TO_LANG[lang]}.\n\
-                                                        These JSON key-value pairs are from a Flutter application's localization template.\n\
-                                                        Instructions:\n\
-                                                        1. Output each JSON key-value pair without leading or tailing brackets, commas, spaces, or line change.\n\
-                                                        2. Like the inputs, the outcome key and value should be enclosed in double quotations.\n\
-                                                        2. Use the provided context for more accurate translations.\n\
-                                                        4. If the message contains markdown formatting syntax, keep those syntax.\n\
-                                                        5. If screenshot of the widget is provided, use the it for extra context.\n\
-                                                        6. The message is from a stress tracking app, make sure the message sounds caring and cute"
+                        {
+                            "role": "system", 
+                            "content": [{
+                            "type": "text",
+                            "text": f"Translate the following English messages from an Application Resource Bundle (ARB) file into {LOCALE_TO_LANG[lang]}.\n\
+These JSON key-value pairs are from a Flutter application's localization template.\n\
+Instructions:\n\
+1. Output JSON key-value pairs without leading or tailing brackets, commas, spaces, or line changes.\n\
+2. Enclose the outcome key and value in double quotations.\n\
+3. If the message contains markdown formatting syntax and special character escapes, make sure to retain those formats.\n\
+4. If a screenshot of the widget is provided, use it for extra context." + f'\n{"5. Use the message's usage context for more accurate translation, the context: " + messageMeta[message]["description"] if message in messageMeta and messageMeta[message] and messageMeta[message]["description"] else ""}'
+                            }]
                         },
                         {
                             "role": "user", 
                             "content": content
                         }
-                    ]
+                    ],
                 )
-                file.write('\t' + repr(completion.choices[0].message.content).strip('\'') + (',\n' if idx < len(messages) - 1 else ''))
+                file.write('\t' + completion.choices[0].message.content.strip('\'') + (',\n' if idx < len(messages) - 1 else ''))
             file.write("\n}")
+
+
+# '"iOSWidgetScreenStep2Title": "Step 2: \n Search for \'Furry\'"' - regular content

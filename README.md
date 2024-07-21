@@ -24,25 +24,26 @@ cd llm-localization
 ```
 
 #### 2. Install dependencies
+Install dependencies in a virtual environment
 ```sh
-pip3 install -r requirements.txt
+pip install poetry
+poetry install
+poetry shell
 ```
 
 #### 3. Set up API key
-`export` your API key as an environment variable
+Put your API key in an `.env` file. 
 ```sh
-export OPENAI_API_KEY=your-api-key
+OPENAI_API_KEY=your-api-key
 ```
 
 ### Usage
-An exemplary usage is in `flutter_l10n` file. 
 ```sh
-python3 flutter_localize.py -i app_en.arb -l es ja zh -k $OPENAI_API_KEY -s screenshots
+python3 flutter_localize.py -i app_en.arb -l es ja zh -s screenshots
 ```
 Here's a breakdown of the parameters:
 - `-i`, `--file` (str, required): Path to the input flutter template file.
 - `-l`, `--languages` (list, required): The list of target languages.
-- `-k`, `--key` (str, required): Your OpenAI API key.
 - `-s`, `--screenshot` (str, optional): The folder that contains all of your screenshots.
 
 #### Screenshot
@@ -58,7 +59,7 @@ Use the two letter language codes as parameters.
 <details>
 <summary>Language Code</summary>
 
-```JSON
+```
 af: Afrikaans
 am: Amharic
 ar: Arabic

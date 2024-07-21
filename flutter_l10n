@@ -1,7 +1,0 @@
-if [ -f .env ]; then
-    export $(grep -v '^#' .env | xargs)
-fi
-
-pip3 install -r requirements.txt
-
-python3 flutter_localize.py -f out/app_en.arb -l zh -k $OPENAI_API_KEY -s screenshots
