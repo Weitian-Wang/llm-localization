@@ -11,7 +11,7 @@ from constants import LOCALE_TO_LANG
 
 def read_input_file(file_path: str) -> str:
     file_content = ""
-    with open(file_path, 'rb') as file:
+    with open(file_path, 'r') as file:
         file_content = file.read()
     return file_content
 
@@ -58,11 +58,11 @@ if __name__ == "__main__":
                 message = messages[idx]
                 content = [
                     {
-                        "type": "text", 
-                        "text": f"{message}:{jsonData[message]}"
+                        "type": "text",
+                        "text": repr(f'"{message}":"{jsonData[message]}"').strip('\'')
                     }
                 ]
-                # content = f"{message}:{jsonData[message]}"
+                # content = f'"{message}":"{jsonData[message]}"'
                 for extension in [".png", ".jpeg", ".jpg"]:
                     detail = "low"
                     image_path = os.path.join(image_dir if image_dir else "", message+extension)
@@ -78,25 +78,25 @@ if __name__ == "__main__":
                                     }
                                 }
                             )
-                # append image input if image flag is true
                 completion = client.chat.completions.create(
                     # cheap and fast gpt-4 mode
                     # model="gpt-4o",
                     # gpt with image support
                     model="gpt-4o-mini",
-                    # response_format={ "type": "json_object" },
                     messages=[
                         {
                             "role": "system", 
                             "content": [{
                                 "type": "text",
-                                "text": f"Translate the following English messages from an Application Resource Bundle (ARB) file into {LOCALE_TO_LANG[lang]}.\n\
-These JSON key-value pairs are from a Flutter application's localization template.\n\
+                                "text": 
+f"Translate the following key-value pair from a Flutter localization template file to {LOCALE_TO_LANG[lang]}.\n\
 Instructions:\n\
-1. Output JSON key-value pairs without leading or tailing brackets, commas, spaces, or line changes.\n\
-2. Enclose the outcome key and value in double quotations.\n\
-3. If the message contains markdown formatting syntax and control character escapes with backslashes, make sure to retain those formats.\n\
-4. If a screenshot of the widget is provided, use it for extra context." + f'\n{"5. Use the message's usage context for more accurate translation, the context: " + messageMeta[message]["description"] if message in messageMeta and messageMeta[message] and messageMeta[message]["description"] else ""}'
+1. Translate the value only and leave the key unchanged.\n\
+2. Output JSON key-value pairs without leading or tailing brackets, commas, spaces, or line changes.\n\
+3. Enclose the outcome key and value in double quotations, just like the input.\n\
+4. Retain any markdown formatting syntax. Keep special character escapes. Preserve any control character backslashes.\n\
+5. If a screenshot of the widget is provided, use it for extra context."
++ f'\n{"6. The message context from metadata is: " + messageMeta[message]["description"] if message in messageMeta and messageMeta[message] and messageMeta[message]["description"] else ""}'
                             }]
                         },
                         {
