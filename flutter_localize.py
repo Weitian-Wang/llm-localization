@@ -89,13 +89,13 @@ if __name__ == "__main__":
                         {
                             "role": "system", 
                             "content": [{
-                            "type": "text",
-                            "text": f"Translate the following English messages from an Application Resource Bundle (ARB) file into {LOCALE_TO_LANG[lang]}.\n\
+                                "type": "text",
+                                "text": f"Translate the following English messages from an Application Resource Bundle (ARB) file into {LOCALE_TO_LANG[lang]}.\n\
 These JSON key-value pairs are from a Flutter application's localization template.\n\
 Instructions:\n\
 1. Output JSON key-value pairs without leading or tailing brackets, commas, spaces, or line changes.\n\
 2. Enclose the outcome key and value in double quotations.\n\
-3. If the message contains markdown formatting syntax and special character escapes, make sure to retain those formats.\n\
+3. If the message contains markdown formatting syntax and control character escapes with backslashes, make sure to retain those formats.\n\
 4. If a screenshot of the widget is provided, use it for extra context." + f'\n{"5. Use the message's usage context for more accurate translation, the context: " + messageMeta[message]["description"] if message in messageMeta and messageMeta[message] and messageMeta[message]["description"] else ""}'
                             }]
                         },
@@ -104,9 +104,13 @@ Instructions:\n\
                             "content": content
                         }
                     ],
+                    # make mode output more deterministic
+                    temperature=0
                 )
-                file.write('\t' + completion.choices[0].message.content.strip('\'') + (',\n' if idx < len(messages) - 1 else ''))
+
+                file.write('\t' + completion.choices[0].message.content + (',\n' if idx < len(messages) - 1 else ''))
             file.write("\n}")
+
 
 
 # '"iOSWidgetScreenStep2Title": "Step 2: \n Search for \'Furry\'"' - regular content
